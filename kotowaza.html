@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>めざせ！ことわざマスター - 小学3年生向け 3たくクイズ</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts for friendly rounded look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .pop-in {
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .bounce-gentle {
+      animation: bounceGentle 2s infinite ease-in-out;
+    }
+    @keyframes bounceGentle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    ruby rt {
+      font-size: 0.6em;
+      color: #ea580c;
+      font-weight: bold;
+    }
+    /* Custom button 3D push effect */
+    .btn-3d {
+      transition: all 0.1s ease;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+    }
+    .btn-3d:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-amber-50 min-h-screen text-slate-800 flex flex-col items-center justify-between p-3 sm:p-6 selection:bg-amber-200">
+
+  <!-- Header -->
+  <header class="w-full max-w-2xl flex items-center justify-between py-2 px-4 bg-white/80 backdrop-blur rounded-2xl shadow-sm mb-4 border border-amber-200">
+    <div class="flex items-center gap-2">
+      <span class="text-3xl">📜</span>
+      <div>
+        <h1 class="font-extrabold text-lg sm:text-xl text-amber-900 tracking-tight leading-tight">
+          めざせ！ことわざマスター
+        </h1>
+        <p class="text-xs font-bold text-amber-600">小学3年生 国語 穴埋め3択クイズ</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="soundToggleBtn" onclick="toggleSound()" class="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-bold flex items-center gap-1 transition">
+        <span id="soundIcon">🔊</span>
+        <span id="soundText" class="hidden sm:inline text-xs">おと ON</span>
+      </button>
+      <button onclick="showScreen('list')" class="px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow transition flex items-center gap-1">
+        📖 <span class="hidden sm:inline">ことわざ</span>いちらん
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="w-full max-w-2xl flex-1 flex flex-col justify-center">
+
+    <!-- 1. START SCREEN -->
+    <div id="startScreen" class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-amber-300 text-center pop-in">
+      <div class="text-6xl sm:text-7xl mb-3 bounce-gentle inline-block">🦉</div>
+      <h2 class="text-2xl sm:text-3xl font-black text-amber-900 mb-2">
+        ことわざ 20もん チャレンジ！
+      </h2>
+      <p class="text-sm sm:text-base text-slate-600 font-bold mb-6">
+        プリントに出てくる「ことわざ」をぜんぶおぼえよう！<br class="hidden sm:inline">
+        （　）にあてはまる ただしい言葉をえらんでね。
+      </p>
+
+      <div class="bg-amber-50 rounded-2xl p-4 mb-6 border-2 border-dashed border-amber-200 text-left">
+        <h3 class="font-extrabold text-amber-900 text-sm mb-2 flex items-center gap-1">
+          <span>✨</span> あそびかたモードをえらぼう：
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button onclick="startQuiz(20, false)" class="btn-3d bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 px-4 rounded-xl text-center flex flex-col items-center">
+            <span class="text-lg">🔥 ぜんぶ（20問）</span>
+            <span class="text-xs text-emerald-100 font-normal">じゅんばんに挑戦</span>
+          </button>
+          <button onclick="startQuiz(10, true)" class="btn-3d bg-sky-500 hover:bg-sky-600 text-white font-extrabold py-3 px-4 rounded-xl text-center flex flex-col items-center">
+            <span class="text-lg">⚡ ハーフ（10問）</span>
+            <span class="text-xs text-sky-100 font-normal">ランダム出題</span>
+          </button>
+          <button onclick="startQuiz(5, true)" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 px-4 rounded-xl text-center flex flex-col items-center">
+            <span class="text-lg">🌟 サクッと（5問）</span>
+            <span class="text-xs text-amber-100 font-normal">すきま時間におさらい</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-center">
+        <button onclick="showScreen('list')" class="text-amber-800 hover:text-amber-950 font-bold text-sm underline flex items-center gap-1">
+          📋 先に20問のことわざと意味をたしかめる
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. QUIZ SCREEN -->
+    <div id="quizScreen" class="hidden bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-4 border-amber-300 flex flex-col">
+      <!-- Top info bar -->
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-100">
+        <div class="flex items-center gap-2">
+          <span id="questionBadge" class="bg-amber-500 text-white font-black text-sm sm:text-base px-3 py-1 rounded-full shadow-sm">
+            第 1 問
+          </span>
+          <span id="questionProgressText" class="text-xs sm:text-sm font-bold text-slate-500">
+            / 20問中
+          </span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-sm font-black text-amber-800">スコア:</span>
+          <span id="currentScore" class="text-xl font-black text-orange-600">0</span>
+          <span class="text-xs font-bold text-slate-500">点</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-slate-100 rounded-full h-3 mb-6 overflow-hidden border border-slate-200">
+        <div id="progressBar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full w-0 transition-all duration-300"></div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-5 sm:p-6 mb-5 text-center relative">
+        <p class="text-xs font-bold text-amber-700 mb-1">【 空らん（　）にあてはまるのは？ 】</p>
+        <div id="questionDisplay" class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 leading-relaxed tracking-wider my-2">
+          <!-- e.g. （石橋）をたたいて渡る -->
+        </div>
+        <div class="mt-3 pt-3 border-t border-amber-200/80 text-left bg-white/60 p-3 rounded-xl">
+          <span class="inline-block bg-orange-100 text-orange-800 text-xs font-bold px-2 py-0.5 rounded mr-1">意味</span>
+          <span id="questionMeaning" class="text-xs sm:text-sm font-bold text-slate-700 leading-normal">
+            <!-- Meaning here -->
+          </span>
+        </div>
+      </div>
+
+      <!-- 3 Options Buttons -->
+      <div id="optionsContainer" class="grid grid-cols-1 gap-3 sm:gap-4 mb-2">
+        <!-- Generated dynamically -->
+      </div>
+
+      <!-- Result Modal / Feedback Banner (inside card) -->
+      <div id="feedbackBox" class="hidden mt-4 p-4 rounded-2xl text-center pop-in border-2">
+        <div id="feedbackTitle" class="text-2xl font-black mb-1 flex items-center justify-center gap-2"></div>
+        <p id="feedbackDetail" class="text-sm font-bold text-slate-700 mb-3"></p>
+        <button id="nextBtn" onclick="nextQuestion()" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-8 py-3 rounded-xl text-base shadow-md inline-flex items-center gap-2">
+          <span>つぎのもんだいへ</span>
+          <span>👉</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. RESULT SCREEN -->
+    <div id="resultScreen" class="hidden bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-amber-300 text-center pop-in">
+      <div id="resultIcon" class="text-6xl sm:text-7xl mb-2">🎉</div>
+      <h2 id="resultTitle" class="text-2xl sm:text-3xl font-black text-amber-900 mb-1">
+        クイズ終了！おつかれさま！
+      </h2>
+      <p id="resultSubtitle" class="text-sm sm:text-base font-bold text-slate-600 mb-4">
+        よくがんばったね！
+      </p>
+
+      <!-- Score Box -->
+      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-2 border-amber-200 mb-6 max-w-md mx-auto">
+        <div class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">あなたのせいせき</div>
+        <div class="flex items-baseline justify-center gap-2 text-slate-800">
+          <span id="finalScore" class="text-5xl sm:text-6xl font-black text-orange-600">0</span>
+          <span class="text-2xl font-bold text-slate-500">/ <span id="finalTotal">20</span> 点</span>
+        </div>
+        <div id="accuracyBadge" class="inline-block mt-3 px-4 py-1 rounded-full font-black text-sm bg-orange-500 text-white shadow">
+          正解率 100%
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap justify-center gap-3 mb-6">
+        <button onclick="startQuiz(quizLength, isRandomMode)" class="btn-3d bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-6 py-3 rounded-xl text-sm flex items-center gap-1">
+          🔄 もういちど挑戦
+        </button>
+        <button onclick="showScreen('start')" class="btn-3d bg-slate-700 hover:bg-slate-800 text-white font-extrabold px-6 py-3 rounded-xl text-sm flex items-center gap-1">
+          🏠 モードをえらびなおす
+        </button>
+        <button onclick="showScreen('list')" class="btn-3d bg-orange-500 hover:bg-orange-600 text-white font-extrabold px-6 py-3 rounded-xl text-sm flex items-center gap-1">
+          📖 一覧でふくしゅうする
+        </button>
+      </div>
+
+      <!-- Review of answered questions -->
+      <div class="text-left mt-6 pt-6 border-t-2 border-dashed border-amber-200">
+        <h3 class="font-black text-lg text-amber-900 mb-3 flex items-center gap-2">
+          <span>📝</span> 今回のといた問題のふり返り
+        </h3>
+        <div id="reviewList" class="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <!-- Dynamic review items -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. ALL PROVERBS LIST / STUDY SCREEN -->
+    <div id="listScreen" class="hidden bg-white rounded-3xl p-5 sm:p-7 shadow-xl border-4 border-amber-300 pop-in flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-4 border-b border-amber-100 mb-4">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-amber-900 flex items-center gap-2">
+            <span>📖</span> ことわざ全20問一覧表
+          </h2>
+          <p class="text-xs text-slate-500 font-bold">夏休みプリントにでてくることわざと意味</p>
+        </div>
+        <button onclick="showScreen('start')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow transition">
+          ◀ もどる
+        </button>
+      </div>
+
+      <!-- Search / filter -->
+      <div class="mb-3">
+        <input id="listSearchInput" oninput="filterProverbList()" type="text" placeholder="ことわざや意味を検索（例: 馬、石橋、失敗）..." class="w-full px-4 py-2 text-sm rounded-xl border-2 border-amber-200 focus:outline-none focus:border-amber-500 font-bold">
+      </div>
+
+      <!-- Scrollable list -->
+      <div id="proverbsListContainer" class="flex-1 overflow-y-auto pr-2 space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="pt-4 mt-2 border-t border-amber-100 text-center">
+        <button onclick="startQuiz(20, false)" class="btn-3d bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-6 py-3 rounded-xl text-sm inline-flex items-center gap-2">
+          <span>🎯 この20問でクイズを始める！</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-2xl text-center py-3 text-xs font-bold text-amber-800/70 mt-4">
+    令和八年度 夏休み 蓮田市国語学力向上プリント準拠 ・ 小学校3年生用
+  </footer>
+
+  <!-- Web Audio Synthesizer & Quiz Logic Script -->
+  <script>
+    // --- 20 PROVERBS DATA FROM PDF ---
+    const PROVERBS_DATA = [
+      {
+        id: 1,
+        full: "石橋をたたいて渡る",
+        prefix: "",
+        blank: "石橋",
+        suffix: "をたたいて渡る",
+        reading: "いしばしをたたいてわたる",
+        choices: ["石橋", "木橋", "鉄橋"],
+        meaning: "ひじょうに用心深いこと。こわれそうにないがんじょうな石の橋でも、たたいて安全を確かめてから渡るという意味。",
+        hint: "石でできたしっかりした橋のことだよ。"
+      },
+      {
+        id: 2,
+        full: "馬の耳に念仏",
+        prefix: "馬の",
+        blank: "耳",
+        suffix: "に念仏",
+        reading: "うまのみみにねんぶつ",
+        choices: ["耳", "口", "目"],
+        meaning: "いくら言っても聞かせても、ききめやありがたみがまったくないこと。",
+        hint: "お経やありがたい教えを聞く「体の部分」だよ。"
+      },
+      {
+        id: 3,
+        full: "泣きっ面に蜂",
+        prefix: "泣きっ面に",
+        blank: "蜂",
+        suffix: "",
+        reading: "なきっつらにはち",
+        choices: ["蜂", "蚊", "鳥"],
+        meaning: "悪いことで弱っている上に、さらに悪いことが重なること。",
+        hint: "刺されると痛い、黄色と黒の虫だよ。"
+      },
+      {
+        id: 4,
+        full: "楽あれば苦あり",
+        prefix: "楽あれば",
+        blank: "苦",
+        suffix: "あり",
+        reading: "らくあればくあり",
+        choices: ["苦", "怒", "悲"],
+        meaning: "楽しいことの後には苦しいこともあり、世の中は良いことばかりではないということ。",
+        hint: "「楽しい（楽）」の反対の言葉だよ。"
+      },
+      {
+        id: 5,
+        full: "三つ子の魂百まで",
+        prefix: "三つ子の魂",
+        blank: "百",
+        suffix: "まで",
+        reading: "みつごのたましいひゃくまで",
+        choices: ["百", "千", "万"],
+        meaning: "幼いときの性質（性格）は、年をとっても変わらないということ。",
+        hint: "100歳（おじいさん・おばあさん）になっても変わらないという意味だよ。"
+      },
+      {
+        id: 6,
+        full: "井の中の蛙大海を知らず",
+        prefix: "井の中の蛙",
+        blank: "大海",
+        suffix: "を知らず",
+        reading: "いのなかのかわずたいかいをしらず",
+        choices: ["大海", "大河", "大空"],
+        meaning: "自分のまわりのせまい範囲のことしか知らないのに、広い世界があることに気づかず得意になっていること。",
+        hint: "井戸から出たことのないカエルは、広くて大きな「海」を知らないよ。"
+      },
+      {
+        id: 7,
+        full: "帯に短したすきに長し",
+        prefix: "帯に短し",
+        blank: "たすき",
+        suffix: "に長し",
+        reading: "おびにみじかしたすきにながし",
+        choices: ["たすき", "はちまき", "マフラー"],
+        meaning: "着物の帯にするには短すぎるし、着物の袖をしばる「たすき」には長すぎて、中途半端で役に立たないこと。",
+        hint: "着物のそでをとめるヒモのことだよ。"
+      },
+      {
+        id: 8,
+        full: "時は金なり",
+        prefix: "",
+        blank: "時",
+        suffix: "は金なり",
+        reading: "ときはかねなり",
+        choices: ["時", "命", "夢"],
+        meaning: "時間はお金のように大切なものだから、むだにしてはならないということ。",
+        hint: "タイム・イズ・マネー！時間はとても大切だね。"
+      },
+      {
+        id: 9,
+        full: "初心忘るべからず",
+        prefix: "",
+        blank: "初心",
+        suffix: "忘るべからず",
+        reading: "しょしんわするべからず",
+        choices: ["初心", "親心", "真心"],
+        meaning: "ものごとを始めたときの、真剣で一生懸命な気持ちを忘れてはならないということ。",
+        hint: "最初に始めたときのピュアな気持ちのことだよ。"
+      },
+      {
+        id: 10,
+        full: "急がば回れ",
+        prefix: "急がば",
+        blank: "回れ",
+        suffix: "",
+        reading: "いそがばまわれ",
+        choices: ["回れ", "走れ", "止まれ"],
+        meaning: "遠回りになっても、安全で確実な道を選んだ方が早く行けるということ。",
+        hint: "あわてて近道をするより、ぐるっと遠回りした方が安全！"
+      },
+      {
+        id: 11,
+        full: "百聞は一見にしかず",
+        prefix: "百聞は",
+        blank: "一見",
+        suffix: "にしかず",
+        reading: "ひゃくぶんはいっけんにしかず",
+        choices: ["一見", "一読", "一歩"],
+        meaning: "百回人に話を聞くよりも、一度実際に自分の目で見る方がよくわかるということ。",
+        hint: "100回聞くよりも「1回見る」こと！"
+      },
+      {
+        id: 12,
+        full: "灯台もと暗し",
+        prefix: "",
+        blank: "灯台",
+        suffix: "もと暗し",
+        reading: "とうだいもとくらし",
+        choices: ["灯台", "月夜", "太陽"],
+        meaning: "身近なことは、かえって気がつきにくいこと。昔のあかり（灯台）の足もとが暗いことから。",
+        hint: "あかりを灯す台のすぐ下は、影になって暗いんだ。"
+      },
+      {
+        id: 13,
+        full: "雨降って地かたまる",
+        prefix: "雨降って",
+        blank: "地",
+        suffix: "かたまる",
+        reading: "あめふってじかたまる",
+        choices: ["地", "土", "心"],
+        meaning: "雨が降ったあとは地面がかたくなることから、もめ事などがあっても、そのあとはかえってよい状態になること。",
+        hint: "「地面（じめん）」の漢字一文字だよ。"
+      },
+      {
+        id: 14,
+        full: "えびで鯛をつる",
+        prefix: "えびで",
+        blank: "鯛",
+        suffix: "をつる",
+        reading: "えびでたいをつる",
+        choices: ["鯛", "鯨", "鯉"],
+        meaning: "小さくて安いエビをエサにして大きな高級魚のタイをつるように、わずかな物で大きな利益を得ること。",
+        hint: "お祝いのときにも食べる、赤くてめでたい高級な魚だよ。"
+      },
+      {
+        id: 15,
+        full: "親の心子知らず",
+        prefix: "",
+        blank: "親",
+        suffix: "の心子知らず",
+        reading: "おやのこここしらず",
+        choices: ["親", "友", "先生"],
+        meaning: "お父さんやお母さんは子どものことを心配しているのに、子どもはその気持ちに気づかず勝手なことをすること。",
+        hint: "お父さんやお母さんのことだよ。"
+      },
+      {
+        id: 16,
+        full: "果報は寝て待て",
+        prefix: "果報は",
+        blank: "寝て",
+        suffix: "待て",
+        reading: "かほうはねてまて",
+        choices: ["寝て", "起きて", "走って"],
+        meaning: "幸運は自分の力だけで呼べるものではないので、あせらずゆっくり待つのがよいということ。",
+        hint: "ジタバタせず、ぐっすり「ねむって」待とう。"
+      },
+      {
+        id: 17,
+        full: "五十歩百歩",
+        prefix: "五十歩",
+        blank: "百歩",
+        suffix: "",
+        reading: "ごじっぽひゃっぽ",
+        choices: ["百歩", "千歩", "一歩"],
+        meaning: "少しの違いはあるけれど、中身はほとんど変わらない・似たようなものだということ。",
+        hint: "50歩にげるのも、100歩にげるのも、にげたことには変わらない！"
+      },
+      {
+        id: 18,
+        full: "猿も木から落ちる",
+        prefix: "",
+        blank: "猿",
+        suffix: "も木から落ちる",
+        reading: "さるもきからおちる",
+        choices: ["猿", "猫", "鳥"],
+        meaning: "木登りが大とくいなサルでも落ちることがあるように、どんな名人でもたまには失敗するということ。",
+        hint: "木登りがとてもとくいな動物といえば？"
+      },
+      {
+        id: 19,
+        full: "花より団子",
+        prefix: "花より",
+        blank: "団子",
+        suffix: "",
+        reading: "はなよりだんご",
+        choices: ["団子", "お菓子", "お米"],
+        meaning: "きれいな花を見るよりも、実際に食べられる団子の方が良いように、見た目よりも実用的なものを好むこと。",
+        hint: "お花見のときに食べる、丸くておいしい食べ物だよ。"
+      },
+      {
+        id: 20,
+        full: "立つ鳥あとをにごさず",
+        prefix: "立つ",
+        blank: "鳥",
+        suffix: "あとをにごさず",
+        reading: "たつとりあとをにごさず",
+        choices: ["鳥", "魚", "犬"],
+        meaning: "飛び立つ水鳥が水を濁さないように、立ち去るときは後始末をきれいにして迷惑をかけないようにすること。",
+        hint: "水辺からパッと空へ飛び立つ生き物だよ。"
+      }
+    ];
+
+    // --- SOUND ENGINE (Web Audio API) ---
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playTone(freq, type, duration, delay = 0) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+
+        setTimeout(() => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        }, delay * 1000);
+      } catch (e) {
+        console.log("Audio not allowed yet:", e);
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      if (type === 'correct') {
+        // High cheery chime (Marimba / Bell like)
+        playTone(523.25, 'sine', 0.15, 0);      // C5
+        playTone(659.25, 'sine', 0.15, 0.08);   // E5
+        playTone(783.99, 'sine', 0.25, 0.16);   // G5
+        playTone(1046.50, 'sine', 0.4, 0.24);   // C6
+      } else if (type === 'wrong') {
+        // Low "boing/buzzer" tone
+        playTone(220, 'sawtooth', 0.2, 0);     // A3
+        playTone(180, 'sawtooth', 0.35, 0.15);  // Lower tone
+      } else if (type === 'fanfare') {
+        // Victory fanfare
+        const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+        const times = [0, 0.12, 0.24, 0.36, 0.52, 0.68];
+        notes.forEach((freq, idx) => {
+          playTone(freq, 'triangle', 0.3, times[idx]);
+        });
+      } else if (type === 'click') {
+        playTone(400, 'sine', 0.05, 0);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
+      document.getElementById('soundText').textContent = soundEnabled ? 'おと ON' : 'おと OFF';
+      if (soundEnabled) {
+        initAudio();
+        playSound('click');
+      }
+    }
+
+    // --- APPLICATION STATE ---
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let quizLength = 20;
+    let isRandomMode = false;
+    let answeredRecords = []; // { proverb, selected, isCorrect }
+    let isAnswered = false;
+
+    // --- SCREEN NAVIGATION ---
+    function showScreen(screenName) {
+      playSound('click');
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('quizScreen').classList.add('hidden');
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('listScreen').classList.add('hidden');
+
+      if (screenName === 'start') {
+        document.getElementById('startScreen').classList.remove('hidden');
+      } else if (screenName === 'quiz') {
+        document.getElementById('quizScreen').classList.remove('hidden');
+      } else if (screenName === 'result') {
+        document.getElementById('resultScreen').classList.remove('hidden');
+      } else if (screenName === 'list') {
+        renderProverbList();
+        document.getElementById('listScreen').classList.remove('hidden');
+      }
+    }
+
+    // --- QUIZ MANAGEMENT ---
+    function startQuiz(length, random) {
+      initAudio();
+      playSound('click');
+      quizLength = Math.min(length, PROVERBS_DATA.length);
+      isRandomMode = random;
+
+      let list = [...PROVERBS_DATA];
+      if (random) {
+        list.sort(() => Math.random() - 0.5);
+      }
+      currentQuestions = list.slice(0, quizLength);
+      currentIndex = 0;
+      score = 0;
+      answeredRecords = [];
+
+      document.getElementById('currentScore').textContent = '0';
+      showScreen('quiz');
+      loadQuestion(currentIndex);
+    }
+
+    function loadQuestion(index) {
+      isAnswered = false;
+      const q = currentQuestions[index];
+
+      // Update Top Status
+      document.getElementById('questionBadge').textContent = `第 ${index + 1} 問`;
+      document.getElementById('questionProgressText').textContent = `/ 全 ${currentQuestions.length} 問中`;
+      const progressPercent = ((index) / currentQuestions.length) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      // Hide feedback box
+      const feedbackBox = document.getElementById('feedbackBox');
+      feedbackBox.classList.add('hidden');
+
+      // Question display with highlighted blank
+      const displayEl = document.getElementById('questionDisplay');
+      displayEl.innerHTML = `
+        <span>${q.prefix}</span>
+        <span class="inline-block px-3 py-1 bg-amber-200 text-amber-900 border-2 border-dashed border-amber-400 rounded-xl font-extrabold mx-1 shadow-inner">
+          （　？　）
+        </span>
+        <span>${q.suffix}</span>
+      `;
+
+      // Question Meaning
+      document.getElementById('questionMeaning').textContent = q.meaning;
+
+      // Render 3 Option Buttons (shuffled)
+      const optionsContainer = document.getElementById('optionsContainer');
+      optionsContainer.innerHTML = '';
+
+      const shuffledChoices = [...q.choices].sort(() => Math.random() - 0.5);
+
+      shuffledChoices.forEach((choice, i) => {
+        const btn = document.createElement('button');
+        btn.className = "btn-3d w-full py-4 px-6 bg-slate-50 hover:bg-amber-100/70 active:bg-amber-200 border-2 border-slate-300 rounded-2xl text-xl sm:text-2xl font-black text-slate-800 transition flex items-center justify-between group";
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-black group-hover:bg-amber-400">
+              ${i + 1}
+            </span>
+            <span>${choice}</span>
+          </div>
+          <span class="text-slate-400 group-hover:text-amber-600 font-bold text-base">えらぶ 👉</span>
+        `;
+        btn.onclick = () => handleChoice(choice, btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function handleChoice(selectedChoice, selectedBtn) {
+      if (isAnswered) return;
+      isAnswered = true;
+
+      const q = currentQuestions[currentIndex];
+      const isCorrect = (selectedChoice === q.blank);
+
+      if (isCorrect) {
+        score++;
+        document.getElementById('currentScore').textContent = score;
+        playSound('correct');
+      } else {
+        playSound('wrong');
+      }
+
+      answeredRecords.push({
+        item: q,
+        selected: selectedChoice,
+        isCorrect: isCorrect
+      });
+
+      // Update question text to show the answered full proverb
+      const displayEl = document.getElementById('questionDisplay');
+      displayEl.innerHTML = `
+        <span>${q.prefix}</span>
+        <span class="inline-block px-3 py-1 ${isCorrect ? 'bg-emerald-200 text-emerald-900 border-emerald-500' : 'bg-rose-200 text-rose-900 border-rose-500'} border-2 rounded-xl font-extrabold mx-1">
+          ${q.blank}
+        </span>
+        <span>${q.suffix}</span>
+      `;
+
+      // Disable all choice buttons & highlight correct/wrong
+      const buttons = document.getElementById('optionsContainer').querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.remove('btn-3d', 'hover:bg-amber-100/70', 'active:bg-amber-200');
+        const textSpan = btn.querySelector('span:nth-child(2)');
+        const choiceText = textSpan ? textSpan.textContent.trim() : '';
+
+        if (choiceText === q.blank) {
+          btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+          btn.querySelector('span:last-child').innerHTML = '⭕ 正解！';
+          btn.querySelector('span:last-child').className = 'text-emerald-600 font-black text-base';
+        } else if (choiceText === selectedChoice && !isCorrect) {
+          btn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+          btn.querySelector('span:last-child').innerHTML = '❌ あなたのこたえ';
+          btn.querySelector('span:last-child').className = 'text-rose-600 font-black text-base';
+        } else {
+          btn.classList.add('opacity-50');
+        }
+      });
+
+      // Show Feedback Box
+      const feedbackBox = document.getElementById('feedbackBox');
+      const feedbackTitle = document.getElementById('feedbackTitle');
+      const feedbackDetail = document.getElementById('feedbackDetail');
+
+      feedbackBox.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'bg-rose-50', 'border-rose-300');
+
+      if (isCorrect) {
+        feedbackBox.classList.add('bg-emerald-50', 'border-emerald-300');
+        feedbackTitle.innerHTML = `<span class="text-3xl text-emerald-600">💮</span> <span class="text-emerald-800 font-black">大正解！すばらしい！</span>`;
+        feedbackDetail.innerHTML = `<strong>【${q.full}】</strong><br><span class="text-xs text-slate-600">${q.hint}</span>`;
+      } else {
+        feedbackBox.classList.add('bg-rose-50', 'border-rose-300');
+        feedbackTitle.innerHTML = `<span class="text-3xl text-rose-500">💦</span> <span class="text-rose-800 font-black">ざんねん！おしい！</span>`;
+        feedbackDetail.innerHTML = `正解は <strong>「${q.blank}」</strong> です。<br>正しいことわざは<strong>【${q.full}】</strong>だよ。`;
+      }
+
+      // Next button text check
+      const nextBtn = document.getElementById('nextBtn');
+      if (currentIndex + 1 >= currentQuestions.length) {
+        nextBtn.innerHTML = `<span>結果をみる！</span> <span>🏆</span>`;
+        nextBtn.className = "btn-3d bg-orange-600 hover:bg-orange-700 text-white font-extrabold px-8 py-3 rounded-xl text-base shadow-md inline-flex items-center gap-2";
+      } else {
+        nextBtn.innerHTML = `<span>つぎのもんだいへ</span> <span>👉</span>`;
+        nextBtn.className = "btn-3d bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-8 py-3 rounded-xl text-base shadow-md inline-flex items-center gap-2";
+      }
+    }
+
+    function nextQuestion() {
+      playSound('click');
+      currentIndex++;
+      if (currentIndex < currentQuestions.length) {
+        loadQuestion(currentIndex);
+      } else {
+        showResults();
+      }
+    }
+
+    // --- RESULT DISPLAY ---
+    function showResults() {
+      // Progress full
+      document.getElementById('progressBar').style.width = `100%`;
+
+      const total = currentQuestions.length;
+      const rate = Math.round((score / total) * 100);
+
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('finalTotal').textContent = total;
+
+      const accuracyBadge = document.getElementById('accuracyBadge');
+      accuracyBadge.textContent = `正解率 ${rate}% （${score} / ${total} 問）`;
+
+      const resultIcon = document.getElementById('resultIcon');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultSubtitle = document.getElementById('resultSubtitle');
+
+      if (rate === 100) {
+        resultIcon.textContent = '👑';
+        resultTitle.textContent = 'パーフェクト！ことわざ名人！';
+        resultSubtitle.textContent = '全問正解！プリントのことわざを完ぺきにおぼえているね！すごい！';
+        playSound('fanfare');
+        // Trigger celebratory confetti
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } catch(e) {}
+      } else if (rate >= 80) {
+        resultIcon.textContent = '🌟';
+        resultTitle.textContent = 'お見事！ことわざハカセ！';
+        resultSubtitle.textContent = 'とってもよくできました！あと少しで満点マスターだ！';
+        playSound('fanfare');
+      } else if (rate >= 60) {
+        resultIcon.textContent = '👍';
+        resultTitle.textContent = 'ナイスチャレンジ！';
+        resultSubtitle.textContent = 'よくがんばったね！まちがえた問題を一覧でおさらいしてみよう！';
+      } else {
+        resultIcon.textContent = '🌱';
+        resultTitle.textContent = 'これからどんどん覚えよう！';
+        resultSubtitle.textContent = 'くりかえし練習すればぜったいに覚えられるよ！もう1回やってみよう！';
+      }
+
+      // Render detailed review list
+      const reviewContainer = document.getElementById('reviewList');
+      reviewContainer.innerHTML = '';
+
+      answeredRecords.forEach((record, idx) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `p-3 rounded-xl border ${record.isCorrect ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'} flex items-start gap-3`;
+        itemDiv.innerHTML = `
+          <span class="text-2xl mt-0.5">${record.isCorrect ? '⭕' : '❌'}</span>
+          <div class="flex-1 text-xs sm:text-sm">
+            <div class="font-black text-slate-800 flex items-center gap-2 flex-wrap">
+              <span>第${idx + 1}問:</span>
+              <span class="text-amber-950 font-extrabold text-sm sm:text-base">${record.item.full}</span>
+            </div>
+            <div class="text-xs text-slate-600 mt-1">
+              あなたの回答: <strong class="${record.isCorrect ? 'text-emerald-700' : 'text-rose-600'}">「${record.selected}」</strong>
+              ${!record.isCorrect ? `<span class="ml-2 font-bold text-slate-700">（正解: 「${record.item.blank}」）</span>` : ''}
+            </div>
+            <div class="mt-1 text-xs text-slate-500 font-medium bg-white/70 p-2 rounded-lg">
+              💡 ${record.item.meaning}
+            </div>
+          </div>
+        `;
+        reviewContainer.appendChild(itemDiv);
+      });
+
+      showScreen('result');
+    }
+
+    // --- PROVERB LIST / STUDY VIEW ---
+    function renderProverbList(filterText = '') {
+      const container = document.getElementById('proverbsListContainer');
+      container.innerHTML = '';
+
+      const query = filterText.trim().toLowerCase();
+
+      const filtered = PROVERBS_DATA.filter(item => {
+        if (!query) return true;
+        return item.full.includes(query) ||
+               item.meaning.includes(query) ||
+               item.reading.includes(query) ||
+               item.blank.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400 font-bold text-sm">
+            見つかりませんでした。<br>別のキーワードでさがしてね。
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = "bg-amber-50/60 border border-amber-200 rounded-2xl p-3 sm:p-4 hover:bg-amber-100/50 transition";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="inline-block bg-amber-500 text-white font-black text-xs px-2 py-0.5 rounded-full">
+                ${item.id}
+              </span>
+              <h3 class="font-extrabold text-base sm:text-lg text-amber-950">
+                ${item.prefix}<span class="text-orange-600 underline decoration-amber-400 decoration-2 font-black">（${item.blank}）</span>${item.suffix}
+              </h3>
+            </div>
+            <span class="text-xs text-slate-400 font-bold whitespace-nowrap">${item.reading}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-700 font-bold mt-1.5 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-amber-100">
+            <span class="text-amber-800 font-extrabold">【意味】</span>${item.meaning}
+          </p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterProverbList() {
+      const val = document.getElementById('listSearchInput').value;
+      renderProverbList(val);
+    }
+
+    // Initialize list when loaded
+    window.addEventListener('DOMContentLoaded', () => {
+      renderProverbList();
+    });
+  </script>
+</body>
+</html>

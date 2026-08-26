@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小3 かんよう句マスター！ 3たくクイズ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+    }
+    .pop-btn {
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .pop-btn:active {
+      transform: translateY(3px);
+      box-shadow: none !important;
+    }
+    ruby rt {
+      font-size: 0.6em;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body class="bg-amber-50 min-h-screen text-slate-800 flex flex-col items-center justify-center p-3 sm:p-6">
+
+  <div id="app" class="w-full max-w-xl bg-white rounded-3xl shadow-xl border-4 border-amber-300 overflow-hidden flex flex-col min-h-[560px]">
+    
+    <!-- ヘッダー -->
+    <header class="bg-gradient-to-r from-amber-400 to-orange-400 p-4 text-white text-center shadow-sm">
+      <div class="inline-block bg-white/20 px-3 py-0.5 rounded-full text-xs font-bold tracking-wider mb-1">
+        小3 国語（夏休み かんよう句プリント）
+      </div>
+      <h1 class="text-xl sm:text-2xl font-black tracking-wide drop-shadow-sm flex items-center justify-center gap-2">
+        <span>📖</span> かんよう句マスター！
+      </h1>
+      
+      <div id="progress-container" class="hidden mt-3">
+        <div class="flex justify-between text-xs font-bold px-1 mb-1 text-amber-950">
+          <span id="question-progress">だい 1 もん / 18もん</span>
+          <span id="score-display">せいかい: 0 もん</span>
+        </div>
+        <div class="w-full bg-amber-200/80 rounded-full h-3 overflow-hidden border border-amber-300">
+          <div id="progress-bar" class="bg-white h-full rounded-full transition-all duration-300" style="width: 5%"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- メイン -->
+    <main class="p-5 sm:p-6 flex-1 flex flex-col justify-center">
+
+      <!-- スタート画面 -->
+      <div id="start-screen" class="text-center py-4">
+        <div class="text-6xl mb-3 animate-bounce">🐱💡</div>
+        <h2 class="text-2xl font-black text-slate-800 mb-2">
+          かんよう句の<br><span class="text-orange-500">あなうめ 3たくクイズ！</span>
+        </h2>
+        <div class="text-slate-600 text-sm font-bold mb-6 text-left bg-amber-100/70 p-4 rounded-2xl border border-amber-200 leading-relaxed">
+          <p class="mb-2">プリントにでてくる <strong>ぜんぶで18もん</strong> のかんよう句がでるよ！</p>
+          <ul class="list-disc list-inside space-y-1 text-xs sm:text-sm text-slate-700">
+            <li>いみのヒントをよく読んで答えをえらぼう！</li>
+            <li>なんどもチャレンジしてパーフェクトをめざそう！</li>
+          </ul>
+        </div>
+
+        <button id="start-btn" class="pop-btn w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-black text-xl rounded-2xl shadow-[0_5px_0_#c2410c]">
+          クイズをはじめよう！ 🚀
+        </button>
+      </div>
+
+      <!-- クイズ画面 -->
+      <div id="quiz-screen" class="hidden flex flex-col">
+        
+        <!-- いみのヒント -->
+        <div class="bg-amber-100/80 border-2 border-amber-300 rounded-2xl p-3.5 mb-4 shadow-sm">
+          <div class="text-xs font-bold text-amber-900 flex items-center gap-1 mb-1">
+            <span>💡</span> <span class="bg-amber-200 px-2 py-0.5 rounded-md">いみのヒント</span>
+          </div>
+          <p id="hint-text" class="text-slate-700 font-bold text-sm sm:text-base leading-snug pl-1">
+            ヒントがここに入ります。
+          </p>
+        </div>
+
+        <!-- もんだい文 -->
+        <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-center mb-4 shadow-inner">
+          <div class="text-xs font-bold text-slate-400 mb-1">（ ）にあてはまることばはどれ？</div>
+          <div id="question-text" class="text-2xl sm:text-3xl font-black text-slate-800 tracking-wider">
+            ( ) に 流す
+          </div>
+        </div>
+
+        <!-- せんたくし -->
+        <div id="options-container" class="grid grid-cols-1 gap-2.5 mb-4">
+          <!-- JSで3択ボタン生成 -->
+        </div>
+
+        <!-- かいせつエリア -->
+        <div id="feedback-area" class="hidden p-3.5 rounded-2xl border-2 mb-3">
+          <div id="feedback-header" class="text-base font-black flex items-center gap-1.5 mb-1"></div>
+          <p id="feedback-explanation" class="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed"></p>
+        </div>
+
+        <!-- 次へボタン -->
+        <button id="next-btn" class="pop-btn hidden w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-2xl shadow-[0_5px_0_#047857]">
+          つぎのもんだいへ 👉
+        </button>
+      </div>
+
+      <!-- 結果画面 -->
+      <div id="result-screen" class="hidden text-center py-4">
+        <div id="result-badge" class="text-6xl mb-2 animate-bounce">🎉</div>
+        <h2 class="text-2xl font-black text-slate-800 mb-1">けっかはっぴょう！</h2>
+        
+        <div class="bg-amber-100/90 border-2 border-amber-300 rounded-3xl p-5 my-4 shadow-sm">
+          <p class="text-xs font-bold text-slate-600 mb-1">あなたのスコア</p>
+          <div class="text-5xl font-black text-orange-600 mb-2">
+            <span id="final-score">0</span> <span class="text-xl text-slate-700">/ 18 もん</span>
+          </div>
+          <p id="result-message" class="text-sm sm:text-base font-bold text-slate-800">
+            メッセージ
+          </p>
+        </div>
+
+        <button id="restart-btn" class="pop-btn w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-black text-xl rounded-2xl shadow-[0_5px_0_#c2410c]">
+          もういちどちょうせんする！ 🔁
+        </button>
+      </div>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-slate-50 border-t border-slate-100 p-2.5 text-center text-xs text-slate-400 font-bold">
+      小学校3年生向け 蓮田市国語学力向上プリント対応[cite: 1]
+    </footer>
+  </div>
+
+  <script>
+    // プリント全18問データ
+    const quizData = [
+      {
+        question: "（ ）に <ruby>流<rt>なが</rt></ruby>す",
+        correct: "水",
+        options: ["水", "川", "風"],
+        hint: "昔のいざこざや失敗などを、なかったことにすること。",
+        explanation: "正解は「水（みず）」！昔あった嫌なことなどをきれいに忘れて争いをやめる時に使います。"
+      },
+      {
+        question: "（ ）をきる",
+        correct: "しらを",
+        options: ["しらを", "うそを", "かおを"],
+        hint: "本当は知っているのに、知らないふりをすること。",
+        explanation: "正解は「しらを」！「白（しら）を切る」と書き、何も知らないそぶりをすることです。"
+      },
+      {
+        question: "<ruby>油<rt>あぶら</rt></ruby>を（ ）",
+        correct: "売る",
+        options: ["売る", "買う", "流す"],
+        hint: "むだ話などをして、仕事やべんきょうをなまけること。",
+        explanation: "正解は「売る（うる）」！昔の油売りがおしゃべりしながら時間をかけていたことが由来です。"
+      },
+      {
+        question: "たなに（ ）",
+        correct: "上げる",
+        options: ["上げる", "入れる", "のせる"],
+        hint: "自分に都合の悪いことは見て見ぬふりをして、触れないようにすること。",
+        explanation: "正解は「上げる（あげる）」！自分の欠点を棚の上にしまって知らん顔をする意味です。"
+      },
+      {
+        question: "（ ）を <ruby>丸<rt>まる</rt></ruby>くする",
+        correct: "目",
+        options: ["目", "口", "顔"],
+        hint: "とてもびっくりして、目を大きく見開くようす。",
+        explanation: "正解は「目（め）」！とても驚いて目が見開いて丸くなる様子を表します。"
+      },
+      {
+        question: "（ ）を <ruby>長<rt>なが</rt></ruby>くする",
+        correct: "首",
+        options: ["首", "手", "足"],
+        hint: "楽しみなことや待ちのぞんでいることが早く来ないかと、待ちこがれること。",
+        explanation: "正解は「首（くび）」！遠くから来る人を首を伸ばして待ちわびる様子からきています。"
+      },
+      {
+        question: "<ruby>腕<rt>うで</rt></ruby>を（ ）",
+        correct: "みがく",
+        options: ["みがく", "ふるう", "きたえる"],
+        hint: "もっと上手になろうとして、たくさん練習すること。",
+        explanation: "正解は「みがく」！技術や力を向上させるために練習することを言います。"
+      },
+      {
+        question: "（ ）が <ruby>広<rt>ひろ</rt></ruby>い",
+        correct: "顔",
+        options: ["顔", "心", "手"],
+        hint: "たくさんの人と知り合いで、付き合いが多いこと。",
+        explanation: "正解は「顔（かお）」！世間に知り合いが多くて有名なことを「顔が広い」と言います。"
+      },
+      {
+        question: "お<ruby>茶<rt>ちゃ</rt></ruby>を（ ）",
+        correct: "にごす",
+        options: ["にごす", "わかす", "こぼす"],
+        hint: "いいかげんなことを言ったり行動したりして、その場をごまかすこと。",
+        explanation: "正解は「にごす」！その場を適当に取り繕ってごまかすことを言います。"
+      },
+      {
+        question: "（ ）が <ruby>軽<rt>かる</rt></ruby>い",
+        correct: "口",
+        options: ["口", "頭", "足"],
+        hint: "言ってはいけないひみつなどを、うっかり何でもしゃべってしまうこと。",
+        explanation: "正解は「口（くち）」！秘密を簡単に漏らしてしまうことを言います。"
+      },
+      {
+        question: "のどから（ ）が<ruby>出<rt>で</rt></ruby>る",
+        correct: "手",
+        options: ["手", "火", "声"],
+        hint: "どうしても手に入れたくて、たまらないこと。",
+        explanation: "正解は「手（て）」！「のどから手が出るほどほしい」という形でよく使います。"
+      },
+      {
+        question: "<ruby>耳<rt>みみ</rt></ruby>に（ ）ができる",
+        correct: "たこ",
+        options: ["たこ", "いぼ", "あざ"],
+        hint: "同じことを何度も何度も聞かされて、うんざりすること。",
+        explanation: "正解は「たこ」！何度も同じことを聞かされて嫌気がさす様子です。"
+      },
+      {
+        question: "（ ）が <ruby>折<rt>お</rt></ruby>れる",
+        correct: "骨",
+        options: ["骨", "心", "腰"],
+        hint: "なにかをするのに、とても苦労や手間がかかること。",
+        explanation: "正解は「骨（ほね）」！「骨が折れる仕事」のように、苦労や手間がかかることに使います。"
+      },
+      {
+        question: "（ ）の<ruby>手<rt>て</rt></ruby>もかりたい",
+        correct: "ねこ",
+        options: ["ねこ", "いぬ", "さる"],
+        hint: "ものすごくいそがしくて、だれの助けでもほしいくらいなこと。",
+        explanation: "正解は「ねこ」！役立たずな猫の手でも借りたいほど忙しいという意味です。"
+      },
+      {
+        question: "<ruby>波<rt>なみ</rt></ruby>に（ ）",
+        correct: "乗る",
+        options: ["乗る", "のまれる", "流される"],
+        hint: "ものごとの調子がよく、うまく勢いづくこと。",
+        explanation: "正解は「乗る（のる）」！好調な流れに乗って物事がスムーズに進むことです。"
+      },
+      {
+        question: "<ruby>後<rt>あと</rt></ruby>の（ ）",
+        correct: "祭り",
+        options: ["祭り", "後悔", "花火"],
+        hint: "時期がすぎてしまって、もう手遅れで後悔すること。",
+        explanation: "正解は「祭り（まつり）」！祭りが終わったあとに準備しても間に合わないことからきています。"
+      },
+      {
+        question: "さじを（ ）",
+        correct: "投げる",
+        options: ["投げる", "置く", "すてる"],
+        hint: "もうどうにもならなくて、あきらめること。",
+        explanation: "正解は「投げる（なげる）」！昔の医者が薬を作るサジを放り投げて治療をあきらめたことが由来です。"
+      },
+      {
+        question: "（ ）を<ruby>持<rt>も</rt></ruby>つ",
+        correct: "肩",
+        options: ["肩", "手", "腰"],
+        hint: "二人のうち、片方の人の味方になったりひいきしたりすること。",
+        explanation: "正解は「肩（かた）」！どちらか一方をかばって味方することを言います。"
+      }
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let isAnswered = false;
+
+    // 要素取得
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const progressContainer = document.getElementById('progress-container');
+    const questionProgress = document.getElementById('question-progress');
+    const scoreDisplay = document.getElementById('score-display');
+    const progressBar = document.getElementById('progress-bar');
+    const hintText = document.getElementById('hint-text');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackArea = document.getElementById('feedback-area');
+    const feedbackHeader = document.getElementById('feedback-header');
+    const feedbackExplanation = document.getElementById('feedback-explanation');
+    const nextBtn = document.getElementById('next-btn');
+    const finalScore = document.getElementById('final-score');
+    const resultBadge = document.getElementById('result-badge');
+    const resultMessage = document.getElementById('result-message');
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function startQuiz() {
+      currentQuestions = shuffle(quizData);
+      currentIndex = 0;
+      score = 0;
+      
+      startScreen.classList.add('hidden');
+      resultScreen.classList.add('hidden');
+      quizScreen.classList.remove('hidden');
+      progressContainer.classList.remove('hidden');
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      isAnswered = false;
+      const q = currentQuestions[currentIndex];
+
+      questionProgress.textContent = `だい ${currentIndex + 1} もん / ${currentQuestions.length}もん`;
+      scoreDisplay.textContent = `せいかい: ${score} もん`;
+      progressBar.style.width = `${((currentIndex + 1) / currentQuestions.length) * 100}%`;
+
+      hintText.textContent = q.hint;
+      questionText.innerHTML = q.question;
+
+      optionsContainer.innerHTML = '';
+      const shuffledOpts = shuffle(q.options);
+
+      shuffledOpts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "pop-btn w-full py-3 px-4 bg-amber-50 hover:bg-amber-100 text-slate-800 font-extrabold text-lg sm:text-xl rounded-2xl border-2 border-amber-300 shadow-[0_3px_0_#fcd34d] flex items-center justify-between";
+        btn.innerHTML = `
+          <span class="w-7 h-7 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-xs font-black mr-2">${idx + 1}</span>
+          <span class="flex-1 text-center">${opt}</span>
+          <span class="w-7"></span>
+        `;
+        btn.onclick = () => selectOption(opt, btn);
+        optionsContainer.appendChild(btn);
+      });
+
+      feedbackArea.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+    }
+
+    function selectOption(selectedOpt, clickedBtn) {
+      if (isAnswered) return;
+      isAnswered = true;
+
+      const q = currentQuestions[currentIndex];
+      const isCorrect = (selectedOpt === q.correct);
+      const buttons = optionsContainer.querySelectorAll('button');
+
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.remove('hover:bg-amber-100', 'pop-btn');
+        const text = btn.querySelector('span:nth-child(2)').textContent.trim();
+        
+        if (text === q.correct) {
+          btn.classList.remove('bg-amber-50', 'border-amber-300', 'shadow-[0_3px_0_#fcd34d]');
+          btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900', 'shadow-[0_3px_0_#10b981]');
+        }
+      });
+
+      if (isCorrect) {
+        score++;
+        scoreDisplay.textContent = `せいかい: ${score} もん`;
+        clickedBtn.classList.add('ring-4', 'ring-emerald-400');
+        feedbackArea.className = "p-3.5 rounded-2xl border-2 mb-3 bg-emerald-50 border-emerald-300";
+        feedbackHeader.innerHTML = "<span class='text-xl text-emerald-600'>⭕ せいかい！</span>";
+      } else {
+        clickedBtn.classList.remove('bg-amber-50', 'border-amber-300', 'shadow-[0_3px_0_#fcd34d]');
+        clickedBtn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900', 'shadow-[0_3px_0_#f43f5e]');
+        feedbackArea.className = "p-3.5 rounded-2xl border-2 mb-3 bg-rose-50 border-rose-300";
+        feedbackHeader.innerHTML = "<span class='text-xl text-rose-500'>❌ ざんねん！</span>";
+      }
+
+      feedbackExplanation.textContent = q.explanation;
+      feedbackArea.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
+    }
+
+    nextBtn.onclick = () => {
+      currentIndex++;
+      if (currentIndex < currentQuestions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    };
+
+    function showResult() {
+      quizScreen.classList.add('hidden');
+      progressContainer.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+
+      finalScore.textContent = score;
+
+      if (score === 18) {
+        resultBadge.textContent = "👑";
+        resultMessage.textContent = "パーフェクト！かんよう句マスターだね！たいへんよくできました！";
+      } else if (score >= 14) {
+        resultBadge.textContent = "🌟";
+        resultMessage.textContent = "おしい！あとすこしで満点！すごいぞ！";
+      } else if (score >= 9) {
+        resultBadge.textContent = "👍";
+        resultMessage.textContent = "半分以上せいかいできたよ！もう一度やっておぼえよう！";
+      } else {
+        resultBadge.textContent = "💪";
+        resultMessage.textContent = "まちがえた問題をふくしゅうして、もう一度チャレンジしてみよう！";
+      }
+    }
+
+    document.getElementById('start-btn').onclick = startQuiz;
+    document.getElementById('restart-btn').onclick = startQuiz;
+  </script>
+</body>
+</html>
