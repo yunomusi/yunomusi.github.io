@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>かわいい31人ルーレット</title>
+  <style>
+    :root {
+      --bg-color: #fdf8f5;
+      --card-bg: #ffffff;
+      --accent: #ff8fa3;
+      --accent-hover: #ff758f;
+      --text: #594a4e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", Meiryo, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-width: 480px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #ff758f;
+      letter-spacing: 0.05em;
+    }
+
+    .roulette-wrapper {
+      position: relative;
+      width: 340px;
+      height: 340px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 26px solid #ff5d8f;
+      z-index: 10;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    }
+
+    canvas {
+      border-radius: 50%;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .btn-spin {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 14px 44px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(255, 143, 163, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-spin:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(255, 143, 163, 0.5);
+    }
+
+    .btn-spin:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .btn-spin:disabled {
+      background-color: #ffd1dc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .result-display {
+      min-height: 2.2rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #e05780;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🌟 ルーレット 🌟</h1>
+
+    <div class="roulette-wrapper">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="340" height="340"></canvas>
+    </div>
+
+    <div class="controls">
+      <div id="result" class="result-display">ボタンを押してスタート！</div>
+      <button id="spinBtn" class="btn-spin">まわす！</button>
+    </div>
+  </div>
+
+  <script>
+    // 31人分の名前リスト（必要に応じて名前を変更できます）
+    const members = Array.from({ length: 31 }, (_, i) => `${i + 1}番`);
+
+    // かわいらしいパステルカラーのパレット（巡回して使用）
+    const colors = [
+      "#FFC6FF", "#BDB2FF", "#A0C4FF", "#9BF6FF", 
+      "#CAFFBF", "#FDFFB6", "#FFD6A5", "#FFADAD"
+    ];
+
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    const resultDisplay = document.getElementById("result");
+
+    const total = members.length;
+    const arc = (2 * Math.PI) / total;
+    let currentAngle = 0;
+    let isSpinning = false;
+
+    // ルーレット盤の描画
+    function drawWheel() {
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < total; i++) {
+        const angle = currentAngle + i * arc;
+        
+        // 扇形
+        ctx.beginPath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius - 4, angle, angle + arc);
+        ctx.lineTo(radius, radius);
+        ctx.fill();
+
+        // 境界線（やわらかい白）
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 文字（番号）
+        ctx.save();
+        ctx.fillStyle = "#4a4044";
+        ctx.font = "bold 11px sans-serif";
+        ctx.translate(
+          radius + Math.cos(angle + arc / 2) * (radius * 0.72),
+          radius + Math.sin(angle + arc / 2) * (radius * 0.72)
+        );
+        ctx.rotate(angle + arc / 2 + Math.PI / 2);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(members[i], 0, 0);
+        ctx.restore();
+      }
+
+      // 中心のかわいい円
+      ctx.beginPath();
+      ctx.arc(radius, radius, 22, 0, 2 * Math.PI);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#ffccd5";
+      ctx.stroke();
+    }
+
+    // スピン処理（イージングアニメーション）
+    function spin() {
+      if (isSpinning) return;
+      isSpinning = true;
+      spinBtn.disabled = true;
+      resultDisplay.textContent = "ルーレット中...";
+
+      const startAngle = currentAngle;
+      // 最低5回転 + ランダムな回転量
+      const spinAngle = 5 * 2 * Math.PI + Math.random() * 2 * Math.PI;
+      const duration = 4000;
+      const startTime = performance.now();
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // イージング（減速処理: Ease Out Cubic）
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentAngle = startAngle + spinAngle * easeOut;
+
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          spinBtn.disabled = false;
+          determineWinner();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // 当選者の判定（針は真上 3π/2 の位置）
+    function determineWinner() {
+      const normalizedAngle = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const pointerAngle = (3 * Math.PI / 2); // 頂点
+      
+      let relativeAngle = (pointerAngle - normalizedAngle) % (2 * Math.PI);
+      if (relativeAngle < 0) relativeAngle += 2 * Math.PI;
+
+      const winningIndex = Math.floor(relativeAngle / arc) % total;
+      resultDisplay.textContent = `🎉 結果：${members[winningIndex]} です！ 🎉`;
+    }
+
+    drawWheel();
+    spinBtn.addEventListener("click", spin);
+  </script>
+</body>
+</html>
