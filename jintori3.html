@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>じんどりゲーム</title>
+<style>
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    text-align: center;
+    background-color: #f8fafc;
+    margin: 0;
+    padding: 16px;
+    user-select: none;
+  }
+  h1 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    color: #333;
+  }
+  
+  /* チーム選択ボタンエリア */
+  .turn-selector {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .btn-team {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 24px;
+    border-radius: 30px;
+    border: 3px solid transparent;
+    cursor: pointer;
+    background-color: #e2e8f0;
+    color: #64748b;
+    transition: all 0.2s;
+  }
+  .btn-team.active-red {
+    background-color: #ef4444;
+    color: white;
+    border-color: #b91c1c;
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  }
+  .btn-team.active-blue {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #1d4ed8;
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+  }
+
+  .message {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #475569;
+    min-height: 24px;
+  }
+
+  /* 陣取り盤面 (5×5 = 25マス) */
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 8px;
+    max-width: 350px;
+    margin: 0 auto 16px;
+    background: #cbd5e1;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    background-color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    border: 2px solid #e2e8f0;
+  }
+  .cell:active {
+    transform: scale(0.92);
+  }
+  .cell.red {
+    background-color: #ef4444;
+    border-color: #dc2626;
+  }
+  .cell.blue {
+    background-color: #3b82f6;
+    border-color: #2563eb;
+  }
+
+  /* コントロールボタン */
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .btn-action {
+    font-size: 15px;
+    font-weight: bold;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-finish {
+    background-color: #10b981;
+    color: white;
+  }
+  .btn-reset {
+    background-color: #94a3b8;
+    color: white;
+  }
+
+  /* 結果表示エリア */
+  .result-box {
+    display: none;
+    background: #fff;
+    border: 4px solid #f59e0b;
+    border-radius: 16px;
+    max-width: 350px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  }
+  .result-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #f59e0b;
+    margin-bottom: 8px;
+  }
+  .result-score {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 16px 0;
+    line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+
+<h1>🚩 じんどりゲーム（5×5）</h1>
+
+<!-- どちらの番か選ぶボタン -->
+<div class="turn-selector">
+  <button id="btnRed" class="btn-team active-red" onclick="setTeam('red')">🟥 あかの ばん</button>
+  <button id="btnBlue" class="btn-team" onclick="setTeam('blue')">🟦 あおの ばん</button>
+</div>
+
+<div class="message" id="msgText">すきな マスを タップしてね！</div>
+
+<!-- 盤面 (5×5 = 25マス) -->
+<div class="grid-container" id="grid"></div>
+
+<div class="action-buttons">
+  <button class="btn-action btn-finish" onclick="endGame()">🏁 けっかを みる</button>
+  <button class="btn-action btn-reset" onclick="initGame()">🔄 はじめから</button>
+</div>
+
+<!-- 結果発表 -->
+<div class="result-box" id="resultBox">
+  <div class="result-title" id="resultWinner">けっかはっぴょう！</div>
+  <div class="result-score" id="resultCounts"></div>
+  <button class="btn-action btn-reset" onclick="initGame()">もういちど あそぶ</button>
+</div>
+
+<script>
+  const ROWS = 5;
+  const COLS = 5;
+  const TOTAL_CELLS = ROWS * COLS; // 25マス
+
+  let currentTeam = 'red';
+  let boardState = Array(TOTAL_CELLS).fill(null);
+
+  const gridEl = document.getElementById('grid');
+  const msgEl = document.getElementById('msgText');
+  const resultBox = document.getElementById('resultBox');
+  const btnRed = document.getElementById('btnRed');
+  const btnBlue = document.getElementById('btnBlue');
+
+  function initGame() {
+    boardState = Array(TOTAL_CELLS).fill(null);
+    gridEl.innerHTML = '';
+    resultBox.style.display = 'none';
+    setTeam('red');
+    msgEl.textContent = 'すきな マスを タップしてね！';
+
+    for (let i = 0; i < TOTAL_CELLS; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `cell-${i}`;
+      cell.onclick = () => handleCellClick(i);
+      gridEl.appendChild(cell);
+    }
+  }
+
+  function setTeam(team) {
+    currentTeam = team;
+    if (team === 'red') {
+      btnRed.className = 'btn-team active-red';
+      btnBlue.className = 'btn-team';
+    } else {
+      btnRed.className = 'btn-team';
+      btnBlue.className = 'btn-team active-blue';
+    }
+  }
+
+  function handleCellClick(index) {
+    if (resultBox.style.display === 'block') return;
+
+    if (boardState[index] === currentTeam) {
+      boardState[index] = null;
+      updateGrid();
+      return;
+    }
+
+    boardState[index] = currentTeam;
+    updateGrid();
+
+    const filledCount = boardState.filter(cell => cell !== null).length;
+    if (filledCount === TOTAL_CELLS) {
+      endGame();
+    }
+  }
+
+  function updateGrid() {
+    for (let i = 0; i < TOTAL_CELLS; i++) {
+      const cell = document.getElementById(`cell-${i}`);
+      cell.className = 'cell';
+      if (boardState[i] === 'red') {
+        cell.classList.add('red');
+      } else if (boardState[i] === 'blue') {
+        cell.classList.add('blue');
+      }
+    }
+  }
+
+  function endGame() {
+    const redCount = boardState.filter(c => c === 'red').length;
+    const blueCount = boardState.filter(c => c === 'blue').length;
+
+    let winnerText = '';
+    if (redCount > blueCount) {
+      winnerText = '🎉 あか チームの かち！ 🎉';
+    } else if (blueCount > redCount) {
+      winnerText = '🎉 あお チームの かち！ 🎉';
+    } else {
+      winnerText = '🤝 ひきわけ！ 🤝';
+    }
+
+    document.getElementById('resultWinner').textContent = winnerText;
+    document.getElementById('resultCounts').innerHTML = `
+      <span style="color:#ef4444;">🟥 あか：<strong>${redCount}</strong> ます</span><br>
+      <span style="color:#3b82f6;">🟦 あお：<strong>${blueCount}</strong> ます</span>
+    `;
+    
+    resultBox.style.display = 'block';
+    resultBox.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  initGame();
+</script>
+
+</body>
+</html>
