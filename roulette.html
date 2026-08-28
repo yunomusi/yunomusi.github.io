@@ -117,7 +117,7 @@
 
     .result-display {
       min-height: 2.2rem;
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: bold;
       color: #e05780;
       display: flex;
@@ -144,10 +144,10 @@
   </div>
 
   <script>
-    // 31人分の名前リスト（必要に応じて名前を変更できます）
-    const members = Array.from({ length: 31 }, (_, i) => `${i + 1}番`);
+    // 1〜31の数字リスト
+    const members = Array.from({ length: 31 }, (_, i) => `${i + 1}`);
 
-    // かわいらしいパステルカラーのパレット（巡回して使用）
+    // パステルカラーパレット
     const colors = [
       "#FFC6FF", "#BDB2FF", "#A0C4FF", "#9BF6FF", 
       "#CAFFBF", "#FDFFB6", "#FFD6A5", "#FFADAD"
@@ -179,18 +179,18 @@
         ctx.lineTo(radius, radius);
         ctx.fill();
 
-        // 境界線（やわらかい白）
+        // 白い境界線
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // 文字（番号）
+        // 数字
         ctx.save();
         ctx.fillStyle = "#4a4044";
-        ctx.font = "bold 11px sans-serif";
+        ctx.font = "bold 13px sans-serif";
         ctx.translate(
-          radius + Math.cos(angle + arc / 2) * (radius * 0.72),
-          radius + Math.sin(angle + arc / 2) * (radius * 0.72)
+          radius + Math.cos(angle + arc / 2) * (radius * 0.74),
+          radius + Math.sin(angle + arc / 2) * (radius * 0.74)
         );
         ctx.rotate(angle + arc / 2 + Math.PI / 2);
         ctx.textAlign = "center";
@@ -199,7 +199,7 @@
         ctx.restore();
       }
 
-      // 中心のかわいい円
+      // 中央のアクセント円
       ctx.beginPath();
       ctx.arc(radius, radius, 22, 0, 2 * Math.PI);
       ctx.fillStyle = "#ffffff";
@@ -209,7 +209,7 @@
       ctx.stroke();
     }
 
-    // スピン処理（イージングアニメーション）
+    // 回転アニメーション
     function spin() {
       if (isSpinning) return;
       isSpinning = true;
@@ -217,7 +217,6 @@
       resultDisplay.textContent = "ルーレット中...";
 
       const startAngle = currentAngle;
-      // 最低5回転 + ランダムな回転量
       const spinAngle = 5 * 2 * Math.PI + Math.random() * 2 * Math.PI;
       const duration = 4000;
       const startTime = performance.now();
@@ -226,7 +225,7 @@
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // イージング（減速処理: Ease Out Cubic）
+        // 減速処理
         const easeOut = 1 - Math.pow(1 - progress, 3);
         currentAngle = startAngle + spinAngle * easeOut;
 
@@ -244,16 +243,16 @@
       requestAnimationFrame(animate);
     }
 
-    // 当選者の判定（針は真上 3π/2 の位置）
+    // 当選判定
     function determineWinner() {
       const normalizedAngle = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      const pointerAngle = (3 * Math.PI / 2); // 頂点
+      const pointerAngle = (3 * Math.PI / 2);
       
       let relativeAngle = (pointerAngle - normalizedAngle) % (2 * Math.PI);
       if (relativeAngle < 0) relativeAngle += 2 * Math.PI;
 
       const winningIndex = Math.floor(relativeAngle / arc) % total;
-      resultDisplay.textContent = `🎉 結果：${members[winningIndex]} です！ 🎉`;
+      resultDisplay.textContent = `🎉 結果：${members[winningIndex]} 🎉`;
     }
 
     drawWheel();
