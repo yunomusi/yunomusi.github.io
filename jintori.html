@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>じゃんけん じんどりゲーム</title>
+<style>
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    text-align: center;
+    background-color: #f8fafc;
+    margin: 0;
+    padding: 16px;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  .controls-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .player-panel {
+    border: 3px solid #ccc;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #fff;
+    width: 140px;
+  }
+  .player-red { border-color: #ef4444; }
+  .player-blue { border-color: #3b82f6; }
+  .player-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .player-red .player-title { color: #ef4444; }
+  .player-blue .player-title { color: #3b82f6; }
+  
+  .hand-select {
+    font-size: 16px;
+    padding: 6px;
+    border-radius: 6px;
+    width: 100%;
+  }
+
+  .btn-play {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px 32px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .btn-play:active {
+    transform: translateY(2px);
+  }
+  .message {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 12px 0;
+    min-height: 28px;
+    color: #4b5563;
+  }
+
+  /* 陣取り盤面 */
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-gap: 6px;
+    max-width: 360px;
+    margin: 0 auto 16px;
+    background: #e2e8f0;
+    padding: 8px;
+    border-radius: 10px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    background-color: #ffffff;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.2s;
+  }
+  .cell.red {
+    background-color: #ef4444;
+    transform: scale(0.96);
+  }
+  .cell.blue {
+    background-color: #3b82f6;
+    transform: scale(0.96);
+  }
+
+  /* 結果表示モーダル */
+  .result-box {
+    display: none;
+    background: #fff;
+    border: 3px solid #f59e0b;
+    border-radius: 12px;
+    max-width: 360px;
+    margin: 10px auto;
+    padding: 16px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  }
+  .result-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #f59e0b;
+  }
+  .result-score {
+    font-size: 20px;
+    margin: 12px 0;
+    line-height: 1.6;
+  }
+  .btn-reset {
+    font-size: 16px;
+    padding: 8px 20px;
+    background-color: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>🚩 じゃんけん じんどりゲーム</h1>
+
+<div class="controls-container">
+  <div class="player-panel player-red">
+    <div class="player-title">あか チーム</div>
+    <select id="handRed" class="hand-select">
+      <option value="rock">✊ グー</option>
+      <option value="scissors">✌️ チョキ</option>
+      <option value="paper">🖐️ パー</option>
+    </select>
+  </div>
+
+  <div class="player-panel player-blue">
+    <div class="player-title">あお チーム</div>
+    <select id="handBlue" class="hand-select">
+      <option value="rock">✊ グー</option>
+      <option value="scissors">✌️ チョキ</option>
+      <option value="paper">🖐️ パー</option>
+    </select>
+  </div>
+</div>
+
+<button class="btn-play" id="btnPlay" onclick="playTurn()">じゃんけん ぽん！</button>
+<div class="message" id="msgText">てを えらんで ボタンをおしてね！</div>
+
+<div class="grid-container" id="grid"></div>
+
+<div class="result-box" id="resultBox">
+  <div class="result-title" id="resultWinner">けっかはっぴょう！</div>
+  <div class="result-score" id="resultCounts"></div>
+  <button class="btn-reset" onclick="initGame()">もういちど あそぶ</button>
+</div>
+
+<script>
+  const TOTAL_CELLS = 24; // 全マス数（6×4）
+  let currentIndex = 0;
+  let cellHistory = []; // 各マスの色記録 ('red' | 'blue')
+
+  const gridEl = document.getElementById('grid');
+  const msgEl = document.getElementById('msgText');
+  const resultBox = document.getElementById('resultBox');
+  const btnPlay = document.getElementById('btnPlay');
+
+  function initGame() {
+    currentIndex = 0;
+    cellHistory = [];
+    gridEl.innerHTML = '';
+    resultBox.style.display = 'none';
+    btnPlay.disabled = false;
+    msgEl.textContent = 'てを えらんで ボタンをおしてね！';
+
+    for (let i = 0; i < TOTAL_CELLS; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `cell-${i}`;
+      gridEl.appendChild(cell);
+    }
+  }
+
+  function playTurn() {
+    if (currentIndex >= TOTAL_CELLS) return;
+
+    const redHand = document.getElementById('handRed').value;
+    const blueHand = document.getElementById('handBlue').value;
+
+    let winner = null;
+
+    if (redHand === blueHand) {
+      msgEl.textContent = '【あいこ】もう一回 じゃんけん！';
+      return;
+    }
+
+    if (
+      (redHand === 'rock' && blueHand === 'scissors') ||
+      (redHand === 'scissors' && blueHand === 'paper') ||
+      (redHand === 'paper' && blueHand === 'rock')
+    ) {
+      winner = 'red';
+      msgEl.innerHTML = '<span style="color:#ef4444;">あか</span> の かち！ マスを ゲット！';
+    } else {
+      winner = 'blue';
+      msgEl.innerHTML = '<span style="color:#3b82f6;">あお</span> の かち！ マスを ゲット！';
+    }
+
+    // マスを塗る
+    const currentCell = document.getElementById(`cell-${currentIndex}`);
+    currentCell.classList.add(winner);
+    cellHistory.push(winner);
+    currentIndex++;
+
+    // 全マス埋まったかの判定
+    if (currentIndex >= TOTAL_CELLS) {
+      endGame();
+    }
+  }
+
+  function endGame() {
+    btnPlay.disabled = true;
+    msgEl.textContent = 'すべての マスが うまりました！';
+
+    // 最後にマスの数を集計
+    const redCount = cellHistory.filter(c => c === 'red').length;
+    const blueCount = cellHistory.filter(c => c === 'blue').length;
+
+    let winnerText = '';
+    if (redCount > blueCount) {
+      winnerText = '🎉 あか チームの かち！ 🎉';
+    } else if (blueCount > redCount) {
+      winnerText = '🎉 あお チームの かち！ 🎉';
+    } else {
+      winnerText = '🤝 ひきわけ！ 🤝';
+    }
+
+    document.getElementById('resultWinner').textContent = winnerText;
+    document.getElementById('resultCounts').innerHTML = `
+      🟥 あか：<strong>${redCount}</strong> ます<br>
+      🟦 あお：<strong>${blueCount}</strong> ます
+    `;
+    resultBox.style.display = 'block';
+  }
+
+  // 初期化実行
+  initGame();
+</script>
+
+</body>
+</html>
