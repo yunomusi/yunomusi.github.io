@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>わくわく！わりざんマスター</title>
+<style>
+  :root {
+    --primary: #ff8fb1;
+    --primary-dark: #f06292;
+    --secondary: #ffeaa7;
+    --accent: #55efc4;
+    --bg: #fffbf0;
+    --card: #ffffff;
+    --text: #2d3436;
+    --font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-family);
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: 0 10px 25px rgba(255, 143, 177, 0.2);
+    border: 4px solid var(--primary);
+    padding: 24px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    color: var(--primary-dark);
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 14px 0 8px;
+    color: #636e72;
+  }
+
+  .btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .btn-group.three {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .select-btn {
+    background: #f8f9fa;
+    border: 2px solid #dfe6e9;
+    border-radius: 16px;
+    padding: 12px 8px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .select-btn.active {
+    background: var(--secondary);
+    border-color: #fdcb6e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(253, 203, 110, 0.4);
+  }
+
+  .main-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 28px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 0 var(--primary-dark);
+    transition: all 0.1s;
+    width: 100%;
+    margin-top: 14px;
+  }
+  .main-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 var(--primary-dark);
+  }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fef1f5;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+
+  .question-box {
+    background: #fafafa;
+    border: 3px dashed var(--primary);
+    border-radius: 20px;
+    padding: 24px 10px;
+    margin-bottom: 16px;
+  }
+  .formula {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text);
+  }
+
+  .input-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  .answer-input {
+    width: 72px;
+    height: 48px;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    border: 2px solid #b2bec3;
+    border-radius: 12px;
+    outline: none;
+  }
+  .answer-input:focus {
+    border-color: var(--primary);
+    background: #fff5f8;
+  }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .keypad button {
+    padding: 12px 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: 2px solid #dfe6e9;
+    background: white;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .keypad button:active {
+    background: #f1f2f6;
+  }
+
+  .records-list {
+    text-align: left;
+    max-height: 180px;
+    overflow-y: auto;
+    margin: 14px 0;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    font-size: 0.85rem;
+  }
+  .records-list li {
+    padding: 4px 0;
+    border-bottom: 1px dotted #ccc;
+    list-style: none;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- タイトル・設定画面 -->
+  <div id="screen-start">
+    <h1>🐾 わりざんランド</h1>
+
+    <div class="section-title">① しゅるいをえらぶ</div>
+    <div class="btn-group">
+      <button class="select-btn active" id="btn-mode-exact" onclick="setMode('exact')">わりきれる<br>(あまりなし)</button>
+      <button class="select-btn" id="btn-mode-rem" onclick="setMode('rem')">あまりがでる<br>(あまりあり)</button>
+    </div>
+
+    <div class="section-title">② もんだいすうをえらぶ</div>
+    <div class="btn-group three">
+      <button class="select-btn active" id="btn-count-10" onclick="setCount(10)">きがるに<br>10問</button>
+      <button class="select-btn" id="btn-count-30" onclick="setCount(30)">しっかり<br>30問</button>
+      <button class="select-btn" id="btn-count-50" onclick="setCount(50)">チャレンジ<br>50問</button>
+    </div>
+
+    <button class="main-btn" onclick="startGame()">スタート！</button>
+
+    <div class="section-title" style="margin-top:20px;">🏆 これまでのきろく</div>
+    <ul class="records-list" id="record-display"></ul>
+  </div>
+
+  <!-- プレイ画面 -->
+  <div id="screen-game" class="hidden">
+    <div class="hud">
+      <div>もんだい: <span id="current-q">1</span> / <span id="total-q">10</span></div>
+      <div>⏱️ <span id="timer-display">00:00</span></div>
+    </div>
+
+    <div class="question-box">
+      <div class="formula" id="formula-text">12 ÷ 3 =</div>
+    </div>
+
+    <div class="input-area">
+      <input type="tel" id="ans-main" class="answer-input" placeholder="こたえ" readonly>
+      <span id="rem-label" class="hidden">あまり</span>
+      <input type="tel" id="ans-rem" class="answer-input hidden" placeholder="あまり" readonly>
+    </div>
+
+    <div class="keypad">
+      <button onclick="pressKey('1')">1</button>
+      <button onclick="pressKey('2')">2</button>
+      <button onclick="pressKey('3')">3</button>
+      <button onclick="pressKey('4')">4</button>
+      <button onclick="pressKey('5')">5</button>
+      <button onclick="pressKey('6')">6</button>
+      <button onclick="pressKey('7')">7</button>
+      <button onclick="pressKey('8')">8</button>
+      <button onclick="pressKey('9')">9</button>
+      <button onclick="pressClear()">クリア</button>
+      <button onclick="pressKey('0')">0</button>
+      <button onclick="switchFocus()" id="btn-focus">つぎへ</button>
+    </div>
+
+    <button class="main-btn" onclick="submitAnswer()">かいとう！</button>
+  </div>
+
+  <!-- リザルト画面 -->
+  <div id="screen-result" class="hidden">
+    <h1>🎉 クリア！おめでとう！</h1>
+    <div class="question-box">
+      <p style="font-size:1.1rem; margin-bottom:10px;">かかったじかん</p>
+      <p class="formula" id="result-time" style="color:var(--primary-dark);">00:00</p>
+      <p id="result-detail" style="margin-top:8px; font-weight:bold;"></p>
+    </div>
+    <button class="main-btn" onclick="returnToStart()">もういちどあそぶ</button>
+  </div>
+</div>
+
+<script>
+  let selectedMode = 'exact';
+  let selectedCount = 10;
+  let questions = [];
+  let currentIndex = 0;
+  let timerInterval = null;
+  let startTime = 0;
+  let activeInputId = 'ans-main';
+
+  function setMode(mode) {
+    selectedMode = mode;
+    document.getElementById('btn-mode-exact').classList.toggle('active', mode === 'exact');
+    document.getElementById('btn-mode-rem').classList.toggle('active', mode === 'rem');
+  }
+
+  function setCount(count) {
+    selectedCount = count;
+    [10, 30, 50].forEach(c => {
+      document.getElementById(`btn-count-${c}`).classList.toggle('active', c === count);
+    });
+  }
+
+  function generateQuestions() {
+    const list = [];
+    while(list.length < selectedCount) {
+      const b = Math.floor(Math.random() * 8) + 2; // わる数: 2~9
+      const q = Math.floor(Math.random() * 9) + 1; // 商: 1~9
+      let a, r;
+
+      if (selectedMode === 'exact') {
+        a = b * q; // 九九の範囲内
+        r = 0;
+      } else {
+        r = Math.floor(Math.random() * (b - 1)) + 1; // あまり: 1 ~ (b-1)
+        a = b * q + r;
+        if (a > 89) continue; // 3年生の九九ベースに収める
+      }
+
+      list.push({ dividend: a, divisor: b, answer: q, remainder: r });
+    }
+    return list;
+  }
+
+  function startGame() {
+    questions = generateQuestions();
+    currentIndex = 0;
+    document.getElementById('total-q').textContent = selectedCount;
+    
+    const isRem = selectedMode === 'rem';
+    document.getElementById('rem-label').classList.toggle('hidden', !isRem);
+    document.getElementById('ans-rem').classList.toggle('hidden', !isRem);
+    document.getElementById('btn-focus').classList.toggle('hidden', !isRem);
+
+    document.getElementById('screen-start').classList.add('hidden');
+    document.getElementById('screen-result').classList.add('hidden');
+    document.getElementById('screen-game').classList.remove('hidden');
+
+    activeInputId = 'ans-main';
+    loadQuestion();
+
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 100);
+  }
+
+  function loadQuestion() {
+    const q = questions[currentIndex];
+    document.getElementById('current-q').textContent = currentIndex + 1;
+    document.getElementById('formula-text').textContent = `${q.dividend} ÷ ${q.divisor} =`;
+    document.getElementById('ans-main').value = '';
+    document.getElementById('ans-rem').value = '';
+    activeInputId = 'ans-main';
+  }
+
+  function updateTimer() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timer-display').textContent = `${m}:${s}`;
+  }
+
+  function pressKey(num) {
+    const input = document.getElementById(activeInputId);
+    if (input.value.length < 2) input.value += num;
+  }
+
+  function pressClear() {
+    document.getElementById(activeInputId).value = '';
+  }
+
+  function switchFocus() {
+    activeInputId = (activeInputId === 'ans-main') ? 'ans-rem' : 'ans-main';
+  }
+
+  function submitAnswer() {
+    const userMain = parseInt(document.getElementById('ans-main').value, 10);
+    const userRem = selectedMode === 'rem' ? (parseInt(document.getElementById('ans-rem').value, 10) || 0) : 0;
+    const q = questions[currentIndex];
+
+    if (userMain === q.answer && userRem === q.remainder) {
+      currentIndex++;
+      if (currentIndex >= selectedCount) {
+        finishGame();
+      } else {
+        loadQuestion();
+      }
+    } else {
+      alert('おしい！もういちど けいさんしてみよう！');
+    }
+  }
+
+  function finishGame() {
+    clearInterval(timerInterval);
+    const totalTime = document.getElementById('timer-display').textContent;
+    document.getElementById('screen-game').classList.add('hidden');
+    document.getElementById('screen-result').classList.remove('hidden');
+    document.getElementById('result-time').textContent = totalTime;
+
+    const modeName = selectedMode === 'exact' ? 'あまりなし' : 'あまりあり';
+    document.getElementById('result-detail').textContent = `${modeName} / ${selectedCount}問`;
+
+    saveRecord(modeName, selectedCount, totalTime);
+  }
+
+  function saveRecord(mode, count, time) {
+    const records = JSON.parse(localStorage.getItem('wari_records') || '[]');
+    const date = new Date();
+    const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+    records.unshift({ mode, count, time, date: dateStr });
+    localStorage.setItem('wari_records', JSON.stringify(records.slice(0, 10)));
+  }
+
+  function loadRecords() {
+    const records = JSON.parse(localStorage.getItem('wari_records') || '[]');
+    const display = document.getElementById('record-display');
+    if (records.length === 0) {
+      display.innerHTML = '<li>まだきろくがありません。ちょうせんしてみよう！</li>';
+      return;
+    }
+    display.innerHTML = records.map(r => 
+      `<li>${r.date} - [${r.mode} ${r.count}問] ⏱️ <strong>${r.time}</strong></li>`
+    ).join('');
+  }
+
+  function returnToStart() {
+    loadRecords();
+    document.getElementById('screen-result').classList.add('hidden');
+    document.getElementById('screen-start').classList.remove('hidden');
+  }
+
+  loadRecords();
+</script>
+</body>
+</html>
