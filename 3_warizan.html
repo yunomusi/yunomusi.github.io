@@ -410,3 +410,56 @@
     if (userMain === q.answer && userRem === q.remainder) {
       currentIndex++;
       if (currentIndex >= selectedCount) {
+        finishGame();
+      } else {
+        loadQuestion();
+      }
+    } else {
+      alert('おしい！もういちど けいさんしてみよう！');
+      selectTarget('ans-main');
+    }
+  }
+
+  function finishGame() {
+    clearInterval(timerInterval);
+    const totalTime = document.getElementById('timer-display').textContent;
+    document.getElementById('screen-game').classList.add('hidden');
+    document.getElementById('screen-result').classList.remove('hidden');
+    document.getElementById('result-time').textContent = totalTime;
+
+    const modeName = selectedMode === 'exact' ? 'あまりなし' : 'あまりあり';
+    document.getElementById('result-detail').textContent = `${modeName} / ${selectedCount}問`;
+
+    saveRecord(modeName, selectedCount, totalTime);
+  }
+
+  function saveRecord(mode, count, time) {
+    const records = JSON.parse(localStorage.getItem('wari_records') || '[]');
+    const date = new Date();
+    const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+    records.unshift({ mode, count, time, date: dateStr });
+    localStorage.setItem('wari_records', JSON.stringify(records.slice(0, 10)));
+  }
+
+  function loadRecords() {
+    const records = JSON.parse(localStorage.getItem('wari_records') || '[]');
+    const display = document.getElementById('record-display');
+    if (records.length === 0) {
+      display.innerHTML = '<li>まだきろくがありません。ちょうせんしてみよう！</li>';
+      return;
+    }
+    display.innerHTML = records.map(r => 
+      `<li>${r.date} - [${r.mode} ${r.count}問] ⏱️ <strong>${r.time}</strong></li>`
+    ).join('');
+  }
+
+  function returnToStart() {
+    loadRecords();
+    document.getElementById('screen-result').classList.add('hidden');
+    document.getElementById('screen-start').classList.remove('hidden');
+  }
+
+  loadRecords();
+</script>
+</body>
+</html>
