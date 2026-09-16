@@ -29,6 +29,7 @@
   }
 
   .container {
+    position: relative;
     width: 100%;
     max-width: 480px;
     background: var(--card);
@@ -37,6 +38,7 @@
     border: 4px solid var(--primary);
     padding: 24px;
     text-align: center;
+    overflow: hidden;
   }
 
   h1 {
@@ -115,26 +117,54 @@
     color: #555;
   }
   .timer-box {
-    font-size: 1.55rem;
+    font-size: 1.6rem;
     font-weight: 900;
     color: #d63031;
     font-family: monospace;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
   }
 
   .question-box {
+    position: relative;
     background: #fafafa;
     border: 3px dashed var(--primary);
     border-radius: 20px;
-    padding: 20px 10px;
+    padding: 22px 10px;
     margin-bottom: 16px;
   }
   .formula {
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     font-weight: bold;
     color: var(--text);
+  }
+
+  /* 判定マーク（〇・×）オーバーレイ */
+  .feedback-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 7rem;
+    line-height: 1;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .feedback-overlay.show {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.95;
+  }
+  .feedback-correct {
+    color: #ff4757;
+    text-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+  }
+  .feedback-wrong {
+    color: #2e86de;
+    text-shadow: 0 4px 12px rgba(46, 134, 222, 0.4);
   }
 
   /* 入力欄 */
@@ -170,13 +200,13 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  /* 現在選択されている入力欄の見た目 */
   .answer-input.current-focus {
     border-color: #ff7675;
     background-color: #fff9db;
     box-shadow: 0 0 0 4px rgba(255, 118, 117, 0.2);
   }
 
+  /* 画面用テンキー */
   .keypad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -224,6 +254,7 @@
 <body>
 
 <div class="container">
+  <!-- スタート画面 -->
   <div id="screen-start">
     <h1>🐾 わりざんランド</h1>
 
@@ -246,6 +277,7 @@
     <ul class="records-list" id="record-display"></ul>
   </div>
 
+  <!-- プレイ画面 -->
   <div id="screen-game" class="hidden">
     <div class="hud">
       <div class="hud-item">もんだい <span id="current-q" style="color:var(--primary-dark); font-size:1.3rem;">1</span> / <span id="total-q">10</span></div>
@@ -253,9 +285,12 @@
     </div>
 
     <div class="question-box">
+      <!-- 判定マーク（〇・×） -->
+      <div id="feedback-mark" class="feedback-overlay"></div>
       <div class="formula" id="formula-text">12 ÷ 3 =</div>
     </div>
 
+    <!-- 入力欄 -->
     <div class="input-area">
       <div class="input-wrapper">
         <span class="input-label">しょう</span>
@@ -268,6 +303,7 @@
       </div>
     </div>
 
+    <!-- 画面用テンキー -->
     <div class="keypad">
       <button onclick="pressKey('1')">1</button>
       <button onclick="pressKey('2')">2</button>
@@ -283,9 +319,10 @@
       <button class="func-btn" id="btn-toggle" onclick="toggleTarget()">きりかえ</button>
     </div>
 
-    <button class="main-btn" onclick="submitAnswer()">こたえあわせ！</button>
+    <button class="main-btn" id="btn-submit" onclick="submitAnswer()">こたえあわせ！</button>
   </div>
 
+  <!-- リザルト画面 -->
   <div id="screen-result" class="hidden">
     <h1>🎉 クリア！やったね！</h1>
     <div class="question-box">
@@ -305,6 +342,7 @@
   let timerInterval = null;
   let startTime = 0;
   let activeInputId = 'ans-main';
+  let isChecking = false; // 判定表示中の連続タップ防止
 
   function setMode(mode) {
     selectedMode = mode;
@@ -341,19 +379,21 @@
   }
 
   function selectTarget(targetId) {
+    if (isChecking) return;
     activeInputId = targetId;
     document.getElementById('ans-main').classList.toggle('current-focus', targetId === 'ans-main');
     document.getElementById('ans-rem').classList.toggle('current-focus', targetId === 'ans-rem');
   }
 
   function toggleTarget() {
-    if (selectedMode !== 'rem') return;
+    if (selectedMode !== 'rem' || isChecking) return;
     selectTarget(activeInputId === 'ans-main' ? 'ans-rem' : 'ans-main');
   }
 
   function startGame() {
     questions = generateQuestions();
     currentIndex = 0;
+    isChecking = false;
     document.getElementById('total-q').textContent = selectedCount;
     
     const isRem = selectedMode === 'rem';
@@ -388,10 +428,11 @@
   }
 
   function pressKey(num) {
+    if (isChecking) return;
     const input = document.getElementById(activeInputId);
     if (input.value.length < 2) {
       input.value += num;
-      // 商を入力したら自動であまりの枠にフォーカスを移動するアシスト（あまりありモード時）
+      // 商を入力したら自動であまりの枠へ移動
       if (selectedMode === 'rem' && activeInputId === 'ans-main') {
         selectTarget('ans-rem');
       }
@@ -399,24 +440,51 @@
   }
 
   function pressClear() {
+    if (isChecking) return;
     document.getElementById(activeInputId).value = '';
   }
 
+  function showFeedback(isCorrect, callback) {
+    const mark = document.getElementById('feedback-mark');
+    mark.className = 'feedback-overlay show ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+    mark.textContent = isCorrect ? '⭕' : '❌';
+
+    setTimeout(() => {
+      mark.className = 'feedback-overlay'; // 非表示に戻す
+      if (callback) callback();
+    }, 550);
+  }
+
   function submitAnswer() {
-    const userMain = parseInt(document.getElementById('ans-main').value, 10);
+    if (isChecking) return;
+    const mainVal = document.getElementById('ans-main').value.trim();
+    if (mainVal === '') return; // 未入力時は何もしない
+
+    isChecking = true;
+    const userMain = parseInt(mainVal, 10);
     const userRem = selectedMode === 'rem' ? (parseInt(document.getElementById('ans-rem').value, 10) || 0) : 0;
     const q = questions[currentIndex];
 
     if (userMain === q.answer && userRem === q.remainder) {
-      currentIndex++;
-      if (currentIndex >= selectedCount) {
-        finishGame();
-      } else {
-        loadQuestion();
-      }
+      // 正解（〇）
+      showFeedback(true, () => {
+        isChecking = false;
+        currentIndex++;
+        if (currentIndex >= selectedCount) {
+          finishGame();
+        } else {
+          loadQuestion();
+        }
+      });
     } else {
-      alert('おしい！もういちど けいさんしてみよう！');
-      selectTarget('ans-main');
+      // 不正解（×）
+      showFeedback(false, () => {
+        isChecking = false;
+        // 入力欄をクリアして商の入力に戻す
+        document.getElementById('ans-main').value = '';
+        document.getElementById('ans-rem').value = '';
+        selectTarget('ans-main');
+      });
     }
   }
 
