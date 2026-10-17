@@ -4,173 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>シンプルタイマー</title>
+    <!-- Tailwind CSS を読み込んで洗練されたデザインに -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --danger-color: #ef4444;
-            --danger-hover: #dc2626;
-            --gray-color: #e5e7eb;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .timer-container {
-            background-color: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        h1 {
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
-            color: #6b7280;
-        }
-
-        /* 時間表示部分 */
-        .time-display {
-            font-size: 4.5rem;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            margin-bottom: 1.5rem;
-            letter-spacing: -2px;
-        }
-
-        /* プログレスバー */
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background-color: var(--gray-color);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 100%;
-            background-color: var(--primary-color);
-            transition: width 0.2s linear;
-        }
-
-        /* クイック追加ボタン群 */
-        .quick-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-quick {
-            background-color: #f3f4f6;
-            border: none;
-            padding: 0.6rem 0;
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #4b5563;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .btn-quick:hover {
-            background-color: #e5e7eb;
-        }
-
-        /* メイン操作ボタン群 */
-        .control-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn-main {
-            flex: 1;
-            padding: 0.8rem 0;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        .btn-main:active {
-            transform: scale(0.98);
-        }
-
-        #startStopBtn {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        #startStopBtn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        #startStopBtn.stop {
-            background-color: var(--danger-color);
-        }
-
-        #startStopBtn.stop:hover {
-            background-color: var(--danger-hover);
-        }
-
-        #resetBtn {
-            background-color: #e5e7eb;
-            color: #374151;
-        }
-
-        #resetBtn:hover {
-            background-color: #d1d5db;
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 flex justify-center items-center h-screen m-0">
 
-    <div class="timer-container">
-        <h1>シンプルタイマー</h1>
+    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border border-slate-100">
+        <h1 class="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-6">Focus Timer</h1>
         
         <!-- 残り時間表示 -->
-        <div class="time-display" id="timeDisplay">03:00</div>
+        <div id="timeDisplay" class="text-7xl font-bold tracking-tight text-slate-900 mb-6 font-mono">03:00</div>
 
         <!-- プログレスバー -->
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progressBar"></div>
+        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-8">
+            <div id="progressBar" class="w-full h-full bg-indigo-600 transition-all duration-200 ease-linear"></div>
         </div>
 
-        <!-- クイック追加ボタン -->
-        <div class="quick-buttons">
-            <button class="btn-quick" onclick="addTime(1)">+1分</button>
-            <button class="btn-quick" onclick="addTime(3)">+3分</button>
-            <button class="btn-quick" onclick="addTime(5)">+5分</button>
-            <button class="btn-quick" onclick="addTime(10)">+10分</button>
+        <!-- 時間増減ボタン群 (+1分 / -1分 / +5分 / -5分) -->
+        <div class="grid grid-cols-4 gap-2 mb-6">
+            <button onclick="adjustTime(-5)" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 py-2.5 rounded-xl text-sm font-semibold transition">-5分</button>
+            <button onclick="adjustTime(-1)" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 py-2.5 rounded-xl text-sm font-semibold transition">-1分</button>
+            <button onclick="adjustTime(1)" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 py-2.5 rounded-xl text-sm font-semibold transition">+1分</button>
+            <button onclick="adjustTime(5)" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 py-2.5 rounded-xl text-sm font-semibold transition">+5分</button>
         </div>
 
-        <!-- スタート・リセットボタン -->
-        <div class="control-buttons">
-            <button class="btn-main" id="startStopBtn" onclick="toggleTimer()">スタート</button>
-            <button class="btn-main" id="resetBtn" onclick="resetTimer()">リセット</button>
+        <!-- メイン操作ボタン群 -->
+        <div class="flex gap-3">
+            <button id="startStopBtn" onclick="toggleTimer()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white py-3.5 rounded-2xl font-semibold shadow-lg shadow-indigo-100 transition">スタート</button>
+            <button id="resetBtn" onclick="resetTimer()" class="flex-1 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 py-3.5 rounded-2xl font-semibold transition">リセット</button>
+        </div>
+    </div>
+
+    <!-- カスタム通知モーダル (alert()の代替) -->
+    <div id="alertModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">⏰</div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">時間になりました！</h3>
+            <p id="alertMessage" class="text-slate-500 text-sm mb-6">タイマーが終了しました。</p>
+            <button onclick="closeAlert()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">OK</button>
         </div>
     </div>
 
     <script>
-        let totalSeconds = 180; // 初期設定: 3分 (180秒)
+        let totalSeconds = 180; // 初期値: 3分 (180秒)
         let remainingSeconds = 180;
         let timerId = null;
         let isRunning = false;
@@ -178,8 +60,9 @@
         const timeDisplay = document.getElementById('timeDisplay');
         const progressBar = document.getElementById('progressBar');
         const startStopBtn = document.getElementById('startStopBtn');
+        const alertModal = document.getElementById('alertModal');
 
-        // 時間のフォーマット (秒 -> MM:SS)
+        // 秒を MM:SS 形式に変換
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
@@ -189,7 +72,7 @@
         // 画面の更新
         function updateDisplay() {
             timeDisplay.textContent = formatTime(remainingSeconds);
-            const progressPercent = (remainingSeconds / totalSeconds) * 100;
+            const progressPercent = totalSeconds > 0 ? (remainingSeconds / totalSeconds) * 100 : 0;
             progressBar.style.width = `${progressPercent}%`;
         }
 
@@ -199,12 +82,12 @@
                 clearInterval(timerId);
                 isRunning = false;
                 startStopBtn.textContent = 'スタート';
-                startStopBtn.classList.remove('stop');
+                startStopBtn.className = 'flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white py-3.5 rounded-2xl font-semibold shadow-lg shadow-indigo-100 transition';
             } else {
                 if (remainingSeconds <= 0) return;
                 isRunning = true;
                 startStopBtn.textContent = '一時停止';
-                startStopBtn.classList.add('stop');
+                startStopBtn.className = 'flex-1 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white py-3.5 rounded-2xl font-semibold shadow-lg shadow-rose-100 transition';
 
                 timerId = setInterval(() => {
                     if (remainingSeconds > 0) {
@@ -214,8 +97,8 @@
                         clearInterval(timerId);
                         isRunning = false;
                         startStopBtn.textContent = 'スタート';
-                        startStopBtn.classList.remove('stop');
-                        alert('時間になりました！');
+                        startStopBtn.className = 'flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white py-3.5 rounded-2xl font-semibold shadow-lg shadow-indigo-100 transition';
+                        showAlert();
                     }
                 }, 1000);
             }
@@ -227,21 +110,45 @@
             isRunning = false;
             remainingSeconds = totalSeconds;
             startStopBtn.textContent = 'スタート';
-            startStopBtn.classList.remove('stop');
+            startStopBtn.className = 'flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white py-3.5 rounded-2xl font-semibold shadow-lg shadow-indigo-100 transition';
             updateDisplay();
         }
 
-        // クイック時間追加
-        function addTime(mins) {
+        // 時間の増減（1分・5分単位）
+        function adjustTime(mins) {
             const addSecs = mins * 60;
-            totalSeconds += addSecs;
-            remainingSeconds += addSecs;
+            
+            // 減少時にマイナスにならないようガード
+            if (remainingSeconds + addSecs < 0) {
+                remainingSeconds = 0;
+            } else {
+                remainingSeconds += addSecs;
+            }
+
+            // 合計時間も連動して更新（プログレスバーの基準になる）
+            if (totalSeconds + addSecs < 0) {
+                totalSeconds = 0;
+            } else {
+                totalSeconds += addSecs;
+            }
+
             updateDisplay();
         }
 
-        // 初期表示
+        // モーダル表示
+        function showAlert() {
+            alertModal.classList.remove('hidden');
+            alertModal.classList.add('flex');
+        }
+
+        // モーダル非表示
+        function closeAlert() {
+            alertModal.classList.add('hidden');
+            alertModal.classList.remove('flex');
+        }
+
+        // 初期化実行
         updateDisplay();
     </script>
-
 </body>
 </html>
